@@ -816,14 +816,8 @@ export default function App() {
   const favoriteMovies = movies.filter((item) =>
     favorites.includes(item.id)
   );
-  // O destaque da página inicial deve ser sempre uma série normal, nunca um canal ao vivo.
-  const heroItem =
-    series.find((item) => !item.isLive && getContentType(item) === "series") ||
-    series.find((item) => !item.isLive) ||
-    null;
-  // A área de TV ao Vivo usa seu próprio destaque independente do destaque da página inicial.
-  const liveHeroItem =
-    liveChannels.find((item) => item.isLive || item.video_url) || LIVE_SERIES;
+  const heroItem = series[0] || null;
+  const liveHeroItem = liveChannels[0] || LIVE_SERIES;
   // Mantém o quadro do player em paisagem para filmes, TV ao vivo e episódios de séries.
   const isLandscapePlayer = true;
   const filteredRequests = requests
