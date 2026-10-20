@@ -1273,6 +1273,56 @@ export default function App() {
       setLikesBusy((prev) => ({ ...prev, [request.id]: false }));
     }
   }
+  async function deleteRequest(request) {
+    if (!isDramovixAdmin) {
+      window.alert("Você não tem permissão para excluir solicitações.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Tem certeza que deseja excluir a solicitação "${request.title}"? Essa ação não pode ser desfeita e removerá também os comentários e curtidas desse pedido.`
+    );
+    if (!confirmed) return;
+
+    try {
+      const { error: commentsError } = await supabase
+        .from("series_request_comments")
+        .delete()
+        .eq("request_id", request.id);
+      if (commentsError) throw commentsError;
+
+      const { error: likesError } = await supabase
+        .from("series_request_likes")
+        .delete()
+        .eq("request_id", request.id);
+      if (likesError) throw likesError;
+
+      const { error: requestError } = await supabase
+        .from("series_requests")
+        .delete()
+        .eq("id", request.id);
+      if (requestError) throw requestError;
+
+      setRequests((previous) => previous.filter((item) => item.id !== request.id));
+      setRequestComments((previous) => {
+        const next = { ...previous };
+        delete next[request.id];
+        return next;
+      });
+      setRequestLikes((previous) => {
+        const next = { ...previous };
+        delete next[request.id];
+        return next;
+      });
+      setRequestMessage(`A solicitação "${request.title}" foi excluída.`);
+    } catch (error) {
+      console.error("Erro ao excluir solicitação:", error);
+      window.alert(
+        `Não foi possível excluir a solicitação. Verifique as permissões de exclusão no Supabase. Detalhes: ${error?.message || "erro desconhecido"}`
+      );
+    }
+  }
+
   async function updateRequestStatus(request, newStatus) {
     if (!isDramovixAdmin) {
       window.alert("Você não tem permissão para alterar esta solicitação.");
@@ -1721,11 +1771,28 @@ export default function App() {
                         </div>
                       )}
                       <div className="dv-request-actions">
+                        {isDramovixAdmin && (
+                          <button
+                            type="button"
+                            className="dv-request-delete-comment"
+                            onClick={() => deleteRequest(request)}
+                            style={{
+                              border: "1px solid rgba(255, 90, 90, 0.45)",
+                              borderRadius: "8px",
+                              padding: "9px 12px",
+                              background: "rgba(180, 30, 30, 0.14)",
+                              color: "#ff8f8f",
+                              cursor: "pointer"
+                            }}
+                          >
+                            🗑️ Excluir solicitação
+                          </button>
+                        )}
                         <button
                           type="button"
                           className={`dv-request-like ${
                             likes.likedByMe ? "active" : ""
-                          }`}
+                          }`
                           disabled={Boolean(likesBusy[request.id])}
                           onClick={() => toggleRequestLike(request)}
                         >
