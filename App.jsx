@@ -816,7 +816,8 @@ export default function App() {
   const favoriteMovies = movies.filter((item) =>
     favorites.includes(item.id)
   );
-  const heroItem = series[0] || movies[0];
+  const heroItem = series[0] || null;
+  const liveHeroItem = liveChannels[0] || LIVE_SERIES;
   // Mantém o quadro do player em paisagem para filmes, TV ao vivo e episódios de séries.
   const isLandscapePlayer = true;
   const filteredRequests = requests
@@ -2592,30 +2593,57 @@ export default function App() {
           </section>
         )}
         {page === "tv" && (
-          <section className="dv-section">
-            <div className="dv-section-heading">
-              <div>
-                <h2>{tr("TV AO VIVO")}</h2>
-                <p>{tr("Assista às transmissões disponíveis.")}</p>
+          <>
+            <section
+              className="dv-hero"
+              style={{
+                backgroundImage: liveHeroItem?.image
+                  ? `url("${liveHeroItem.image}")`
+                  : "none"
+              }}
+            >
+              <div className="dv-hero-overlay" />
+              <div className="dv-hero-content">
+                <span className="dv-eyebrow">TV AO VIVO</span>
+                <h1>{liveHeroItem?.title || "TV ao Vivo"}</h1>
+                <p>
+                  {liveHeroItem?.description
+                    ? liveHeroItem.description.slice(0, 140)
+                    : "Assista às transmissões disponíveis."}
+                </p>
+                <button
+                  className="dv-button-primary"
+                  onClick={() => openLive(liveHeroItem)}
+                >
+                  ▶ Assistir ao vivo
+                </button>
               </div>
-            </div>
-            {liveChannelsLoading ? (
-              <p className="dv-message">Carregando canais ao vivo...</p>
-            ) : (
-              renderGrid(
-                [
-                  ...filteredLiveChannels,
-                  ...(!search &&
-                  !liveChannels.some(
-                    (item) => normalize(item.title) === "z nation"
-                  )
-                    ? [LIVE_SERIES]
-                    : [])
-                ],
-                "live"
-              )
-            )}
-          </section>
+            </section>
+            <section className="dv-section">
+              <div className="dv-section-heading">
+                <div>
+                  <h2>{tr("TV AO VIVO")}</h2>
+                  <p>{tr("Assista às transmissões disponíveis.")}</p>
+                </div>
+              </div>
+              {liveChannelsLoading ? (
+                <p className="dv-message">Carregando canais ao vivo...</p>
+              ) : (
+                renderGrid(
+                  [
+                    ...filteredLiveChannels,
+                    ...(!search &&
+                    !liveChannels.some(
+                      (item) => normalize(item.title) === "z nation"
+                    )
+                      ? [LIVE_SERIES]
+                      : [])
+                  ],
+                  "live"
+                )
+              )}
+            </section>
+          </>
         )}
         {page === "explorar" && (
           <section className="dv-section">
