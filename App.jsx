@@ -25,6 +25,23 @@ function getRequestStatusLabel(status) {
   if (status === "Disponível") return "Série postada";
   return REQUEST_STATUSES.includes(status) ? status : "Recebida";
 }
+const getYouTubeEmbedUrl = (url = "") => {
+  try {
+    const parsed = new URL(url);
+    let id = "";
+    if (parsed.hostname === "youtu.be" || parsed.hostname.endsWith(".youtu.be")) {
+      id = parsed.pathname.split("/").filter(Boolean)[0] || "";
+    } else if (parsed.hostname.includes("youtube.com") || parsed.hostname.includes("youtube-nocookie.com")) {
+      if (parsed.pathname === "/watch") id = parsed.searchParams.get("v") || "";
+      else if (/^\/(embed|shorts|live)\//.test(parsed.pathname)) id = parsed.pathname.split("/")[2] || "";
+    }
+    return /^[a-zA-Z0-9_-]{11}$/.test(id)
+      ? `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&playsinline=1&rel=0`
+      : "";
+  } catch {
+    return "";
+  }
+};
 const normalize = (value = "") =>
   String(value)
     .normalize("NFD")
@@ -2997,16 +3014,29 @@ export default function App() {
                   : "dv-video-wrap--portrait"
               }`}
             >
-              <video
-                key={selectedEpisode?.id || "video-player"}
-                ref={videoRef}
-                className="dv-video"
-                controls
-                playsInline
-                autoPlay
-                preload="auto"
-                onEnded={handleVideoEnded}
-              />
+              {getYouTubeEmbedUrl(selectedEpisode?.video_url) ? (
+                <iframe
+                  key={selectedEpisode?.id || selectedEpisode?.video_url}
+                  className="dv-video"
+                  src={getYouTubeEmbedUrl(selectedEpisode?.video_url)}
+                  title={selectedEpisode?.title || selectedMovie?.title || "Filme no YouTube"}
+                  style={{ width: "100%", height: "100%", border: 0, aspectRatio: "16 / 9" }}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allowFullScreen
+                />
+              ) : (
+                <video
+                  key={selectedEpisode?.id || "video-player"}
+                  ref={videoRef}
+                  className="dv-video"
+                  controls
+                  playsInline
+                  autoPlay
+                  preload="auto"
+                  onEnded={handleVideoEnded}
+                />
+              )}
             </div>
             {playerError && (
               <div className="dv-player-error" role="alert">
