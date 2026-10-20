@@ -16,11 +16,15 @@ const LIVE_SERIES = {
 };
 const REQUEST_STATUSES = [
   "Recebida",
-  "Em busca",
-  "Em preparação",
-  "Disponível",
+  "Em andamento",
+  "Série postada",
   "Indisponível"
 ];
+function getRequestStatusLabel(status) {
+  if (status === "Em busca" || status === "Em preparação") return "Em andamento";
+  if (status === "Disponível") return "Série postada";
+  return REQUEST_STATUSES.includes(status) ? status : "Recebida";
+}
 const normalize = (value = "") =>
   String(value)
     .normalize("NFD")
@@ -810,7 +814,7 @@ export default function App() {
         normalize(request.description || "").includes(query);
       const matchesStatus =
         requestStatusFilter === "Todas" ||
-        request.status === requestStatusFilter;
+        getRequestStatusLabel(request.status) === requestStatusFilter;
       return matchesQuery && matchesStatus;
     })
     .sort((a, b) => {
@@ -1479,20 +1483,20 @@ export default function App() {
     );
   }
   function renderRequestStatus(status) {
+    const label = getRequestStatusLabel(status);
     const statusClasses = {
       Recebida: "dv-request-status--received",
-      "Em busca": "dv-request-status--searching",
-      "Em preparação": "dv-request-status--preparing",
-      Disponível: "dv-request-status--available",
+      "Em andamento": "dv-request-status--searching",
+      "Série postada": "dv-request-status--available",
       Indisponível: "dv-request-status--unavailable"
     };
     return (
       <span
         className={`dv-request-status ${
-          statusClasses[status] || ""
+          statusClasses[label] || ""
         }`}
       >
-        {status || "Recebida"}
+        {label}
       </span>
     );
   }
@@ -1695,7 +1699,7 @@ export default function App() {
                           </label>
                           <select
                             id={`dramovix-admin-status-${request.id}`}
-                            value={request.status || "Recebida"}
+                            value={getRequestStatusLabel(request.status)}
                             onChange={(event) =>
                               updateRequestStatus(request, event.target.value)
                             }
