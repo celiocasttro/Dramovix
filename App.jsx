@@ -817,11 +817,8 @@ export default function App() {
     favorites.includes(item.id)
   );
   const heroItem = series[0] || movies[0];
-  const isLandscapePlayer = Boolean(
-    selectedEpisode?.isMovie ||
-      selectedEpisode?.isLive ||
-      selectedSeries?.isLive
-  );
+  // Mantém o quadro do player em paisagem para filmes, TV ao vivo e episódios de séries.
+  const isLandscapePlayer = true;
   const filteredRequests = requests
     .filter((request) => {
       const query = normalize(requestSearch);
